@@ -1,18 +1,24 @@
-// pages/[id].js
+let urlDatabase = {};
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/router';
+export async function getServerSideProps(context) {
+  const { id } = context.params;
+  const data = urlDatabase[id];
+
+  if (data) {
+    data.clicks++;
+    return {
+      redirect: {
+        destination: data.originalUrl,
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    notFound: true,
+  };
+}
 
 export default function RedirectPage() {
-  const router = useRouter();
-  const { id } = router.query;
-
-  useEffect(() => {
-    if (!id) return;
-
-    // সার্ভার সাইড রিডাইরেকশন হ্যান্ডেল করা উচিত
-    // এখানে শুধুমাত্র একটি লোডিং বার্তা দেখানো হচ্ছে
-  }, [id]);
-
-  return <p>Redirecting...</p>;
+  return null;
 }
