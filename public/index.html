@@ -5,53 +5,7 @@
   <title>🔗 URL Shortener</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      height: 100vh;
-      justify-content: center;
-      align-items: center;
-    }
-    .box {
-      background: #fff;
-      padding: 40px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      border-radius: 15px;
-      text-align: center;
-      width: 100%;
-      max-width: 400px;
-    }
-    h1 {
-      font-size: 24px;
-      margin-bottom: 20px;
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin-bottom: 20px;
-      font-size: 16px;
-    }
-    button {
-      background-color: #007bff;
-      border: none;
-      padding: 12px 24px;
-      color: white;
-      font-size: 16px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    #result {
-      margin-top: 20px;
-      font-weight: bold;
-    }
+    /* Your existing styles */
   </style>
 </head>
 <body>
@@ -59,31 +13,48 @@
     <h1>🔗 URL Shortener</h1>
     <form id="shortenForm">
       <input type="text" id="urlInput" placeholder="Enter your long URL" required />
-      <input type="text" id="aliasInput" placeholder="Enter custom alias (optional)" />
       <button type="submit">Shorten</button>
     </form>
     <div id="result"></div>
+
+    <!-- Section to view click statistics -->
+    <h2>Click Stats</h2>
+    <input type="text" id="statUrlInput" placeholder="Enter shortened URL to view clicks" />
+    <button onclick="fetchStats()">Get Click Stats</button>
+    <div id="stats"></div>
   </div>
 
   <script>
+    // Shorten URL Logic
     document.getElementById("shortenForm").addEventListener("submit", async function (e) {
       e.preventDefault();
       const url = document.getElementById("urlInput").value;
-      const alias = document.getElementById("aliasInput").value;
-      
       const res = await fetch("/api/shorten", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ url, custom: alias }),
+        body: JSON.stringify({ url }),
       });
-
       const data = await res.json();
       document.getElementById("result").innerHTML = `
         Shortened URL: <a href="${data.shortened_url}" target="_blank">${data.shortened_url}</a>
       `;
     });
+
+    // Fetch Click Stats
+    async function fetchStats() {
+      const url = document.getElementById('statUrlInput').value;
+      const shortId = url.split('/').pop(); // Extract shortId from URL
+      const response = await fetch(`/api/stats?id=${shortId}`);
+      const data = await response.json();
+      
+      if (data.clicks !== undefined) {
+        document.getElementById('stats').innerHTML = `This link has been clicked ${data.clicks} times.`;
+      } else {
+        document.getElementById('stats').innerHTML = 'No data found for this link.';
+      }
+    }
   </script>
 </body>
 </html>
