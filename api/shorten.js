@@ -3,10 +3,20 @@ let counter = 1;
 
 export default function handler(req, res) {
   if (req.method === 'POST') {
-    const { url } = req.body;
-    const shortId = counter++;
-    urlDatabase[shortId] = url;
+    const { url, customCode } = req.body;
 
+    // Check if customCode is provided and not already used
+    let shortId;
+    if (customCode) {
+      if (urlDatabase[customCode]) {
+        return res.status(409).json({ error: 'Custom code already in use.' });
+      }
+      shortId = customCode;
+    } else {
+      shortId = counter++;
+    }
+
+    urlDatabase[shortId] = url;
     const shortenedUrl = `${req.headers.origin}/${shortId}`;
     res.status(200).json({ shortened_url: shortenedUrl });
   } else if (req.method === 'GET') {
