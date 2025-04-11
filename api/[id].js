@@ -1,4 +1,4 @@
-let urlDatabase = {};
+import urlDatabase from '../lib/db';
 
 export async function getServerSideProps(context) {
   const { id } = context.params;
