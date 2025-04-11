@@ -1,9 +1,9 @@
-let urlDatabase = {};
+import urlDatabase from '../../lib/db';
 
 export default function handler(req, res) {
   if (req.method === 'POST') {
     const { url, custom } = req.body;
-    let id = custom ? custom.trim() : Date.now().toString(36);
+    const id = custom?.trim() || Date.now().toString(36);
 
     if (urlDatabase[id]) {
       return res.status(400).json({ error: 'Alias already in use' });
@@ -14,6 +14,6 @@ export default function handler(req, res) {
     const shortenedUrl = `${req.headers.origin}/${id}`;
     res.status(200).json({ shortened_url: shortenedUrl, clicks: 0 });
   } else {
-    res.status(405).end(); // Method Not Allowed
+    res.status(405).end();
   }
 }
