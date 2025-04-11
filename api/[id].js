@@ -1,7 +1,7 @@
+// pages/[id].js
+
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-
-let urlDatabase = {}; // Same database from api/shorten.js (in memory for demo)
 
 export default function RedirectPage() {
   const router = useRouter();
@@ -10,15 +10,8 @@ export default function RedirectPage() {
   useEffect(() => {
     if (!id) return;
 
-    // Try fetching from localStorage
-    const storedData = localStorage.getItem('shortUrls');
-    if (storedData) {
-      const parsed = JSON.parse(storedData);
-      if (parsed[id]) {
-        // Redirect to original URL
-        window.location.href = parsed[id].original;
-      }
-    }
+    // সার্ভার সাইড রিডাইরেকশন হ্যান্ডেল করা উচিত
+    // এখানে শুধুমাত্র একটি লোডিং বার্তা দেখানো হচ্ছে
   }, [id]);
 
   return <p>Redirecting...</p>;
