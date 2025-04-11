@@ -1,24 +1,18 @@
 let urlDatabase = {};
+let clickCount = {};
 
-export async function getServerSideProps(context) {
-  const { id } = context.params;
-  const data = urlDatabase[id];
+export default function handler(req, res) {
+  const {
+    query: { id },
+  } = req;
 
-  if (data) {
-    data.clicks++;
-    return {
-      redirect: {
-        destination: data.originalUrl,
-        permanent: false,
-      },
-    };
+  const originalUrl = urlDatabase[id];
+
+  if (originalUrl) {
+    clickCount[id] = (clickCount[id] || 0) + 1;
+    res.writeHead(302, { Location: originalUrl });
+    res.end();
+  } else {
+    res.status(404).send("URL not found");
   }
-
-  return {
-    notFound: true,
-  };
-}
-
-export default function RedirectPage() {
-  return null;
 }
