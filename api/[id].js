@@ -2,9 +2,9 @@ import { urlDatabase, clickDatabase } from './api/shorten';
 
 export async function getServerSideProps(context) {
   const { id } = context.params;
-  const data = urlDatabase[id];
+  const originalUrl = urlDatabase[id];
 
-  if (data) {
+  if (originalUrl) {
     clickDatabase[id] = (clickDatabase[id] || 0) + 1;
     return {
       redirect: {
