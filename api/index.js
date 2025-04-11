@@ -1,26 +1,37 @@
-const express = require("express");
-const app = express();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Custom URL Shortener</title>
+</head>
+<body>
+  <h1>Paste a long URL</h1>
+  <form id="shortenForm">
+    <input type="text" id="urlInput" placeholder="Enter your long URL" required />
+    <input type="text" id="customInput" placeholder="Custom alias (optional)" />
+    <button type="submit">Shorten</button>
+  </form>
+  <div id="result"></div>
 
-app.use(express.json());
-let urlDatabase = {};
-let counter = 1;
+  <script>
+    document.getElementById("shortenForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const url = document.getElementById("urlInput").value;
+      const custom = document.getElementById("customInput").value;
 
-app.post("/shorten", (req, res) => {
-  const { url } = req.body;
-  const shortPath = counter.toString();
-  urlDatabase[shortPath] = url;
-  counter++;
-  res.json({ shortened_url: `https://${req.headers.host}/${shortPath}` });
-});
+      const res = await fetch('/api/shorten', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, custom })
+      });
 
-app.get("/:id", (req, res) => {
-  const id = req.params.id;
-  const originalUrl = urlDatabase[id];
-  if (originalUrl) {
-    res.redirect(originalUrl);
-  } else {
-    res.status(404).send("URL not found");
-  }
-});
-
-module.exports = app;
+      const data = await res.json();
+      if (data.shortened_url) {
+        document.getElementById("result").innerHTML = `Shortened: <a href="${data.shortened_url}" target="_blank">${data.shortened_url}</a>`;
+      } else {
+        document.getElementById("result").innerHTML = `Error: ${data.error}`;
+      }
+    });
+  </script>
+</body>
+</html>
