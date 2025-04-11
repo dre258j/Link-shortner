@@ -1,22 +1,22 @@
 let urlDatabase = {};
-let counter = 1;
 
 export default function handler(req, res) {
   if (req.method === 'POST') {
-    const { url, customCode } = req.body;
+    const { url, custom } = req.body;
 
-    // Check if customCode is provided and not already used
-    let shortId;
-    if (customCode) {
-      if (urlDatabase[customCode]) {
-        return res.status(409).json({ error: 'Custom code already in use.' });
-      }
-      shortId = customCode;
-    } else {
-      shortId = counter++;
+    if (!url) {
+      return res.status(400).json({ error: "URL is required" });
+    }
+
+    const shortId = custom || Date.now().toString(36);
+
+    // Check if custom alias already exists
+    if (urlDatabase[shortId]) {
+      return res.status(409).json({ error: "Custom alias already in use" });
     }
 
     urlDatabase[shortId] = url;
+
     const shortenedUrl = `${req.headers.origin}/${shortId}`;
     res.status(200).json({ shortened_url: shortenedUrl });
   } else if (req.method === 'GET') {
