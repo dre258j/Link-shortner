@@ -1,29 +1,34 @@
 let urlDatabase = {};
-let clickCount = {};
+let clickDatabase = {};
 
+// Save and load from localStorage-like memory on Vercel (session only)
 export default function handler(req, res) {
-  if (req.method === "POST") {
+  if (req.method === 'POST') {
     const { url, custom } = req.body;
-    let shortId;
 
-    if (custom) {
-      if (urlDatabase[custom]) {
-        return res.status(400).json({ error: "Custom alias already taken" });
-      }
-      shortId = custom;
-    } else {
-      shortId = Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
-      while (urlDatabase[shortId]) {
-        shortId = Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
-      }
+    const shortId = custom || Date.now().toString(36);
+
+    if (urlDatabase[shortId]) {
+      return res.status(400).json({ error: "Custom alias already in use." });
     }
 
     urlDatabase[shortId] = url;
-    clickCount[shortId] = 0;
+    clickDatabase[shortId] = clickDatabase[shortId] || 0;
 
     const shortenedUrl = `${req.headers.origin}/${shortId}`;
-    res.status(200).json({ shortened_url: shortenedUrl, id: shortId });
+    res.status(200).json({ shortened_url: shortenedUrl, clicks: clickDatabase[shortId] });
+  } else if (req.method === 'GET') {
+    const { id } = req.query;
+    const originalUrl = urlDatabase[id];
+
+    if (originalUrl) {
+      clickDatabase[id]++;
+      res.writeHead(302, { Location: originalUrl });
+      res.end();
+    } else {
+      res.status(404).send("URL not found");
+    }
   } else {
-    res.status(405).end(); // Method Not Allowed
+    res.status(405).end();
   }
 }
