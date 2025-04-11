@@ -6,9 +6,10 @@ export default function handler(req, res) {
   if (req.method === 'POST') {
     const { url, custom } = req.body;
 
-    let shortId = custom || Date.now().toString(36);
+    let shortId = custom || Date.now().toString(36); // Jodi custom alias na thake, tahole timestamp use hobe
 
-    urlDatabase[shortId] = url; // Store original URL
+    // URL & click tracking gulo store kora hocche
+    urlDatabase[shortId] = url;
     clickDatabase[shortId] = { count: 0 }; // Initialize click count
 
     const shortenedUrl = `${req.headers.origin}/${shortId}`;
