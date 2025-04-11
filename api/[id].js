@@ -1,13 +1,24 @@
 let urlDatabase = {};
 
-export default function handler(req, res) {
-  const { id } = req.query;
-  const originalUrl = urlDatabase[id];
+export async function getServerSideProps(context) {
+  const { id } = context.params;
+  const data = urlDatabase[id];
 
-  if (originalUrl) {
-    res.writeHead(302, { Location: originalUrl });
-    res.end();
-  } else {
-    res.status(404).send("URL not found");
+  if (data) {
+    data.clicks++;
+    return {
+      redirect: {
+        destination: data.originalUrl,
+        permanent: false,
+      },
+    };
   }
+
+  return {
+    notFound: true,
+  };
+}
+
+export default function RedirectPage() {
+  return null;
 }
