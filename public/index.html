@@ -3,78 +3,79 @@
 <head>
   <meta charset="UTF-8" />
   <title>URL Shortener</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background: #f5f5f5;
-    }
-    .container {
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
+      font-family: sans-serif;
+      padding: 20px;
     }
     input, button {
       padding: 10px;
-      margin: 10px 0;
+      margin-bottom: 10px;
       width: 100%;
-      border-radius: 5px;
-      border: 1px solid #ccc;
       font-size: 16px;
     }
-    button {
-      background: #007bff;
-      color: #fff;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    #result {
+    .result {
       margin-top: 20px;
-      font-weight: bold;
+    }
+    .link-box {
+      margin-bottom: 10px;
+      background: #f1f1f1;
+      padding: 10px;
+      border-radius: 8px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>🔗 URL Shortener</h2>
-    <input type="text" id="urlInput" placeholder="Paste a long url" required />
-    <input type="text" id="customInput" placeholder="Custom alias (optional)" />
-    <button onclick="shortenUrl()">Shorten</button>
-    <div id="result"></div>
-  </div>
+  <h1>URL Shortener</h1>
+  <form id="form">
+    <input type="text" id="url" placeholder="Paste your long URL" required />
+    <input type="text" id="custom" placeholder="Custom alias (optional)" />
+    <button type="submit">Shorten</button>
+  </form>
+
+  <div id="result" class="result"></div>
 
   <script>
-    async function shortenUrl() {
-      const url = document.getElementById('urlInput').value;
-      const custom = document.getElementById('customInput').value;
-      const response = await fetch('/api/shorten', {
+    const form = document.getElementById('form');
+    const resultDiv = document.getElementById('result');
+
+    const savedLinks = JSON.parse(localStorage.getItem('shortLinks')) || [];
+
+    function renderLinks() {
+      resultDiv.innerHTML = '';
+      savedLinks.forEach(link => {
+        const div = document.createElement('div');
+        div.className = 'link-box';
+        div.innerHTML = `<a href="${link.url}" target="_blank">${link.url}</a> - Clicks: <span id="click-${link.id}">${link.clicks || 0}</span>`;
+        resultDiv.appendChild(div);
+      });
+    }
+
+    renderLinks();
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const url = document.getElementById('url').value;
+      const custom = document.getElementById('custom').value;
+
+      const res = await fetch('/api/shorten', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url, custom })
       });
 
-      const data = await response.json();
+      const data = await res.json();
 
       if (data.error) {
-        document.getElementById('result').innerText = data.error;
-      } else {
-        document.getElementById('result').innerHTML = `
-          <a href="${data.shortened_url}" target="_blank">${data.shortened_url}</a> 
-          - Clicks: ${data.clicks}
-        `;
+        alert(data.error);
+        return;
       }
-    }
+
+      const newLink = { url: data.shortened_url, id: data.id, clicks: 0 };
+      savedLinks.push(newLink);
+      localStorage.setItem('shortLinks', JSON.stringify(savedLinks));
+      renderLinks();
+    });
   </script>
 </body>
 </html>
