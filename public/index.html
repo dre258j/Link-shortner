@@ -52,6 +52,11 @@
       margin-top: 20px;
       font-weight: bold;
     }
+    .click-count {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #888;
+    }
   </style>
 </head>
 <body>
@@ -69,19 +74,23 @@
     document.getElementById("shortenForm").addEventListener("submit", async function (e) {
       e.preventDefault();
       const url = document.getElementById("urlInput").value;
-      const customAlias = document.getElementById("customAliasInput").value; // Custom alias ta nilam
+      const customAlias = document.getElementById("customAliasInput").value;
 
       const res = await fetch("/api/shorten", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ url, custom: customAlias }), // Custom alias pass kora hocche
+        body: JSON.stringify({ url, custom: customAlias }),
       });
 
       const data = await res.json();
+      const shortUrl = data.shortened_url;
+
+      // Show shortened URL and click count
       document.getElementById("result").innerHTML = `
-        Shortened URL: <a href="${data.shortened_url}" target="_blank">${data.shortened_url}</a>
+        Shortened URL: <a href="${shortUrl}" target="_blank">${shortUrl}</a>
+        <div class="click-count">Click count: 0</div>
       `;
     });
   </script>
