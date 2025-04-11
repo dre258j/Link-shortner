@@ -2,80 +2,68 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>SRABON Shortener</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      margin: 0;
-      background: #f5f5f5;
-    }
-    .container {
-      background: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 400px;
-      text-align: center;
-    }
-    input, button {
-      padding: 10px;
-      margin: 10px 0;
-      width: 100%;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-    }
-    button {
-      background: #007bff;
-      color: #fff;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    #result {
-      margin-top: 20px;
-      font-weight: bold;
-    }
-  </style>
+  <title>URL Shortener</title>
 </head>
 <body>
-  <div class="container">
-    <h2>🔗 SRABON Shortener</h2>
-    <input type="text" id="urlInput" placeholder="Paste a long url" required />
+  <div>
+    <input type="text" id="urlInput" placeholder="Paste long URL" />
     <input type="text" id="customInput" placeholder="Custom alias (optional)" />
     <button onclick="shortenUrl()">Shorten</button>
     <div id="result"></div>
   </div>
 
   <script>
+    const storageKey = "shortened_links";
+
+    function saveToLocalStorage(link, clicks = 0) {
+      const links = JSON.parse(localStorage.getItem(storageKey)) || [];
+      links.push({ link, clicks });
+      localStorage.setItem(storageKey, JSON.stringify(links));
+      displayLinks();
+    }
+
+    function displayLinks() {
+      const result = document.getElementById('result');
+      const links = JSON.parse(localStorage.getItem(storageKey)) || [];
+      result.innerHTML = links.map(item =>
+        `<div>
+          <a href="${item.link}" onclick="incrementClick('${item.link}')" target="_blank">${item.link}</a>
+          - Clicks: <span id="${item.link}">${item.clicks}</span>
+        </div>`
+      ).join("");
+    }
+
+    function incrementClick(link) {
+      const links = JSON.parse(localStorage.getItem(storageKey)) || [];
+      const updated = links.map(item => {
+        if (item.link === link) {
+          item.clicks += 1;
+          document.getElementById(link).innerText = item.clicks;
+        }
+        return item;
+      });
+      localStorage.setItem(storageKey, JSON.stringify(updated));
+    }
+
     async function shortenUrl() {
       const url = document.getElementById('urlInput').value;
       const custom = document.getElementById('customInput').value;
-      const response = await fetch('/api/shorten', {
+
+      const res = await fetch('/api/shorten', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, custom })
+        body: JSON.stringify({ url, custom }),
       });
 
-      const data = await response.json();
-
-      if (data.error) {
-        document.getElementById('result').innerText = data.error;
+      const data = await res.json();
+      if (data.shortened_url) {
+        saveToLocalStorage(data.shortened_url, 0);
       } else {
-        document.getElementById('result').innerHTML = `
-          <a href="${data.shortened_url}" target="_blank">${data.shortened_url}</a> 
-          - Clicks: ${data.clicks}
-        `;
+        alert(data.error || "Something went wrong.");
       }
     }
+
+    displayLinks();
   </script>
 </body>
 </html>
-
