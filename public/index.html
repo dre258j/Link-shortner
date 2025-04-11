@@ -2,84 +2,64 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>🔗 Simple URL Shortener</title>
+  <title>🔗 URL Shortener</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
       margin: 0;
       padding: 0;
-      font-family: 'Inter', sans-serif;
-      background: #f0f2f5;
       display: flex;
+      height: 100vh;
       justify-content: center;
       align-items: center;
-      height: 100vh;
     }
-
-    .container {
-      background: #ffffff;
+    .box {
+      background: #fff;
       padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      border-radius: 15px;
       text-align: center;
-      max-width: 400px;
       width: 100%;
+      max-width: 400px;
     }
-
     h1 {
-      margin-bottom: 25px;
       font-size: 24px;
-      color: #333;
+      margin-bottom: 20px;
     }
-
     input[type="text"] {
       width: 100%;
-      padding: 14px;
-      margin-bottom: 20px;
-      border-radius: 10px;
+      padding: 12px;
+      border-radius: 8px;
       border: 1px solid #ccc;
+      margin-bottom: 20px;
       font-size: 16px;
-      outline: none;
     }
-
     button {
       background-color: #007bff;
       border: none;
       padding: 12px 24px;
       color: white;
       font-size: 16px;
-      border-radius: 10px;
+      border-radius: 8px;
       cursor: pointer;
-      width: 100%;
     }
-
     button:hover {
       background-color: #0056b3;
     }
-
     #result {
       margin-top: 20px;
-      word-break: break-all;
-      color: #333;
-      font-weight: 600;
-    }
-
-    a {
-      color: #007bff;
-      text-decoration: none;
-    }
-
-    a:hover {
-      text-decoration: underline;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="box">
     <h1>🔗 URL Shortener</h1>
     <form id="shortenForm">
       <input type="text" id="urlInput" placeholder="Enter your long URL" required />
+      <input type="text" id="aliasInput" placeholder="Enter custom alias (optional)" />
       <button type="submit">Shorten</button>
     </form>
     <div id="result"></div>
@@ -89,19 +69,20 @@
     document.getElementById("shortenForm").addEventListener("submit", async function (e) {
       e.preventDefault();
       const url = document.getElementById("urlInput").value;
-      const res = await fetch("/shorten", {
+      const alias = document.getElementById("aliasInput").value;
+      
+      const res = await fetch("/api/shorten", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, custom: alias }),
       });
+
       const data = await res.json();
-      if (data.shortened_url) {
-        document.getElementById("result").innerHTML = `Shortened URL: <a href="${data.shortened_url}" target="_blank">${data.shortened_url}</a>`;
-      } else {
-        document.getElementById("result").innerHTML = `❌ Error: ${data.error || "Something went wrong"}`;
-      }
+      document.getElementById("result").innerHTML = `
+        Shortened URL: <a href="${data.shortened_url}" target="_blank">${data.shortened_url}</a>
+      `;
     });
   </script>
 </body>
