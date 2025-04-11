@@ -2,105 +2,105 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>URL Shortener</title>
+  <title>🔗 URL Shortener</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
+      background: #f4f4f4;
       height: 100vh;
-      background: #f5f5f5;
+      margin: 0;
     }
-    .container {
-      background: #fff;
+    .box {
+      background: white;
       padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 450px;
-      text-align: center;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      max-width: 500px;
+      width: 100%;
     }
     input, button {
-      padding: 10px;
-      margin: 10px 0;
       width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      font-size: 16px;
       border-radius: 5px;
       border: 1px solid #ccc;
-      font-size: 16px;
     }
     button {
       background: #007bff;
-      color: #fff;
+      color: white;
+      border: none;
       cursor: pointer;
     }
     button:hover {
       background: #0056b3;
     }
-    .link-row {
-      margin-top: 15px;
-      font-size: 16px;
+    .link-box {
+      margin-top: 20px;
     }
-    .clicks {
-      color: gray;
-      font-size: 14px;
+    .link-item {
+      margin-bottom: 10px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="box">
     <h2>🔗 URL Shortener</h2>
-    <input type="text" id="urlInput" placeholder="Paste a long URL" required />
+    <input type="text" id="urlInput" placeholder="Enter long URL" required />
     <input type="text" id="customInput" placeholder="Custom alias (optional)" />
-    <button onclick="shortenUrl()">Shorten</button>
-    <div id="result"></div>
+    <button onclick="shorten()">Shorten</button>
+    <div class="link-box" id="result"></div>
   </div>
 
   <script>
-    function getStoredLinks() {
-      return JSON.parse(localStorage.getItem("shortenedLinks") || "[]");
-    }
+    const resultBox = document.getElementById('result');
 
-    function saveLink(link, clicks) {
-      const links = getStoredLinks();
-      links.push({ link, clicks });
-      localStorage.setItem("shortenedLinks", JSON.stringify(links));
-    }
-
-    function renderLinks() {
-      const links = getStoredLinks();
-      const result = document.getElementById("result");
-      result.innerHTML = "";
-      links.forEach(({ link, clicks }) => {
-        result.innerHTML += `<div class="link-row">
-          <a href="${link}" target="_blank">${link}</a>
-          <span class="clicks"> - Clicks: ${clicks}</span>
-        </div>`;
+    function loadFromLocalStorage() {
+      const data = JSON.parse(localStorage.getItem('shortLinks')) || [];
+      resultBox.innerHTML = '';
+      data.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'link-item';
+        div.innerHTML = `<a href="${item.url}" target="_blank" onclick="increaseClick('${item.id}')">${item.url}</a> - Clicks: <span id="clicks-${item.id}">${item.clicks}</span>`;
+        resultBox.appendChild(div);
       });
     }
 
-    async function shortenUrl() {
-      const url = document.getElementById("urlInput").value;
-      const custom = document.getElementById("customInput").value;
+    function increaseClick(id) {
+      const data = JSON.parse(localStorage.getItem('shortLinks')) || [];
+      const index = data.findIndex(i => i.id === id);
+      if (index !== -1) {
+        data[index].clicks += 1;
+        localStorage.setItem('shortLinks', JSON.stringify(data));
+        document.getElementById(`clicks-${id}`).innerText = data[index].clicks;
+      }
+    }
 
-      const res = await fetch("/api/shorten", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+    async function shorten() {
+      const url = document.getElementById('urlInput').value;
+      const custom = document.getElementById('customInput').value;
+
+      const res = await fetch('/api/shorten', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url, custom })
       });
 
       const data = await res.json();
-      if (data.error) {
-        alert(data.error);
-        return;
-      }
 
-      saveLink(data.shortened_url, data.clicks);
-      renderLinks();
+      let savedLinks = JSON.parse(localStorage.getItem('shortLinks')) || [];
+      savedLinks.push({ id: data.shortId, url: data.shortened_url, clicks: 0 });
+      localStorage.setItem('shortLinks', JSON.stringify(savedLinks));
+
+      loadFromLocalStorage();
     }
 
-    renderLinks(); // Load links on page load
+    // Load saved links when page loads
+    window.onload = loadFromLocalStorage;
   </script>
 </body>
 </html>
