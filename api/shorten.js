@@ -1,25 +1,26 @@
-// urlDatabase er modhe URL gulo store hoy.
-let urlDatabase = {}; 
-let clickDatabase = {}; // Click count track korar jonno
+let urlDatabase = {}; // Store original URL
+let clickDatabase = {}; // Store click count for each short URL
 
 export default function handler(req, res) {
   if (req.method === 'POST') {
     const { url, custom } = req.body;
 
-    let shortId = custom || Date.now().toString(36); // Jodi custom alias na thake, tahole timestamp use hobe
+    // Check for custom alias, else generate one automatically
+    let shortId = custom || Date.now().toString(36);
 
-    // URL & click tracking gulo store kora hocche
+    // Store URL and initialize click count
     urlDatabase[shortId] = url;
-    clickDatabase[shortId] = { count: 0 }; // Initialize click count
+    clickDatabase[shortId] = { count: 0 };
 
     const shortenedUrl = `${req.headers.origin}/${shortId}`;
     res.status(200).json({ shortened_url: shortenedUrl });
   } else if (req.method === 'GET') {
     const { id } = req.query;
-
     const originalUrl = urlDatabase[id];
+
     if (originalUrl) {
-      clickDatabase[id].count++; // Increment click count on each visit
+      // Increment click count on each visit
+      clickDatabase[id].count++;
 
       res.writeHead(302, { Location: originalUrl });
       res.end();
