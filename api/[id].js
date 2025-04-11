@@ -1,13 +1,12 @@
-let urlDatabase = {};
+const urlDatabase = {}; // This will not persist between requests in production
 
 export async function getServerSideProps({ params }) {
-  const { id } = params;
-  const destination = urlDatabase[id];
+  const originalUrl = urlDatabase[params.id];
 
-  if (destination) {
+  if (originalUrl) {
     return {
       redirect: {
-        destination,
+        destination: originalUrl,
         permanent: false,
       },
     };
