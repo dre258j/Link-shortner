@@ -1,102 +1,81 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>🔗 ইউআরএল শর্টনার</title>
+  <title>URL Shortener</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
-      font-family: sans-serif;
-      background: #f4f4f4;
+      font-family: Arial, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
       margin: 0;
+      background: #f5f5f5;
     }
     .container {
-      background: white;
+      background: #fff;
       padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      max-width: 500px;
-      width: 100%;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
     }
     input, button {
+      padding: 10px;
+      margin: 10px 0;
       width: 100%;
-      padding: 12px;
-      margin: 8px 0;
-      font-size: 16px;
       border-radius: 5px;
       border: 1px solid #ccc;
+      font-size: 16px;
     }
     button {
       background: #007bff;
-      color: white;
-      border: none;
+      color: #fff;
       cursor: pointer;
     }
     button:hover {
       background: #0056b3;
     }
-    .link-box {
+    #result {
       margin-top: 20px;
-    }
-    .link-item {
-      margin-bottom: 10px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>🔗 ইউআরএল শর্টনার</h2>
-    <input type="text" id="urlInput" placeholder="দীর্ঘ ইউআরএল দিন" required />
-    <input type="text" id="customInput" placeholder="কাস্টম আইডি (ঐচ্ছিক)" />
-    <button onclick="shorten()">শর্ট করুন</button>
-    <div class="link-box" id="result"></div>
+    <h2>🔗 SRABON Shortener</h2>
+    <input type="text" id="urlInput" placeholder="Paste a long url" required />
+    <input type="text" id="customInput" placeholder="Custom alias (optional)" />
+    <button onclick="shortenUrl()">Shorten</button>
+    <div id="result"></div>
   </div>
 
   <script>
-    const resultBox = document.getElementById('result');
-
-    function loadFromLocalStorage() {
-      const data = JSON.parse(localStorage.getItem('shortLinks')) || [];
-      resultBox.innerHTML = '';
-      data.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'link-item';
-        div.innerHTML = `<a href="${item.url}" target="_blank" onclick="increaseClick('${item.id}')">${item.url}</a> - ক্লিক: <span id="clicks-${item.id}">${item.clicks}</span>`;
-        resultBox.appendChild(div);
-      });
-    }
-
-    function increaseClick(id) {
-      const data = JSON.parse(localStorage.getItem('shortLinks')) || [];
-      const index = data.findIndex(i => i.id === id);
-      if (index !== -1) {
-        data[index].clicks += 1;
-        localStorage.setItem('shortLinks', JSON.stringify(data));
-        document.getElementById(`clicks-${id}`).innerText = data[index].clicks;
-      }
-    }
-
-    async function shorten() {
+    async function shortenUrl() {
       const url = document.getElementById('urlInput').value;
       const custom = document.getElementById('customInput').value;
-
-      const res = await fetch('/api/shorten', {
+      const response = await fetch('/api/shorten', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url, custom })
       });
 
-      const data = await res.json();
+      const data = await response.json();
 
-      if (!data.shortened_url) {
-        document.getElementById('result').innerText = data.error || "ত্রুটি ঘটেছে";
-        return;
+      if (data.error) {
+        document.getElementById('result').innerText = data.error;
+      } else {
+        document.getElementById('result').innerHTML = `
+          <a href="${data.shortened_url}" target="_blank">${data.shortened_url}</a> 
+          - Clicks: ${data.clicks}
+        `;
       }
+    }
+  </script>
+</body>
+</html>
 
-      const shortId = data.shortened_url
-::contentReference[oaicite:0]{index=0}
- 
