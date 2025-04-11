@@ -1,34 +1,33 @@
-// pages/api/shorten.js
-
-let urlDatabase = {}; // শর্ট আইডি অনুযায়ী মূল ইউআরএল সংরক্ষণ
-let clickDatabase = {}; // শর্ট আইডি অনুযায়ী ক্লিক কাউন্ট সংরক্ষণ
+let urlDatabase = {}; // Store original URL
+let clickDatabase = {}; // Store click count for each short URL
 
 export default function handler(req, res) {
   if (req.method === 'POST') {
     const { url, custom } = req.body;
-    const shortId = custom || Date.now().toString(36);
 
-    if (urlDatabase[shortId]) {
-      return res.status(409).json({ error: 'এই কাস্টম আইডি ইতিমধ্যে ব্যবহৃত হয়েছে।' });
-    }
+    // Check for custom alias, else generate one automatically
+    let shortId = custom || Date.now().toString(36);
 
+    // Store URL and initialize click count
     urlDatabase[shortId] = url;
-    clickDatabase[shortId] = 0;
+    clickDatabase[shortId] = { count: 0 };
 
     const shortenedUrl = `${req.headers.origin}/${shortId}`;
-    res.status(200).json({ shortened_url: shortenedUrl, shortId });
+    res.status(200).json({ shortened_url: shortenedUrl });
   } else if (req.method === 'GET') {
     const { id } = req.query;
     const originalUrl = urlDatabase[id];
 
     if (originalUrl) {
-      clickDatabase[id] += 1;
+      // Increment click count on each visit
+      clickDatabase[id].count++;
+
       res.writeHead(302, { Location: originalUrl });
       res.end();
     } else {
-      res.status(404).send("URL পাওয়া যায়নি");
+      res.status(404).send("URL not found");
     }
   } else {
-    res.status(405).end(); // অনুমোদিত নয়
+    res.status(405).end(); // Method Not Allowed
   }
 }
