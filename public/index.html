@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
   <meta charset="UTF-8" />
-  <title>🔗 URL Shortener</title>
+  <title>🔗 ইউআরএল শর্টনার</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
     body {
       font-family: sans-serif;
+      background: #f4f4f4;
       display: flex;
       justify-content: center;
       align-items: center;
-      background: #f4f4f4;
       height: 100vh;
       margin: 0;
     }
-    .box {
+    .container {
       background: white;
       padding: 30px;
       border-radius: 10px;
@@ -48,11 +48,11 @@
   </style>
 </head>
 <body>
-  <div class="box">
-    <h2>🔗 URL Shortener</h2>
-    <input type="text" id="urlInput" placeholder="Enter long URL" required />
-    <input type="text" id="customInput" placeholder="Custom alias (optional)" />
-    <button onclick="shorten()">Shorten</button>
+  <div class="container">
+    <h2>🔗 ইউআরএল শর্টনার</h2>
+    <input type="text" id="urlInput" placeholder="দীর্ঘ ইউআরএল দিন" required />
+    <input type="text" id="customInput" placeholder="কাস্টম আইডি (ঐচ্ছিক)" />
+    <button onclick="shorten()">শর্ট করুন</button>
     <div class="link-box" id="result"></div>
   </div>
 
@@ -65,7 +65,7 @@
       data.forEach(item => {
         const div = document.createElement('div');
         div.className = 'link-item';
-        div.innerHTML = `<a href="${item.url}" target="_blank" onclick="increaseClick('${item.id}')">${item.url}</a> - Clicks: <span id="clicks-${item.id}">${item.clicks}</span>`;
+        div.innerHTML = `<a href="${item.url}" target="_blank" onclick="increaseClick('${item.id}')">${item.url}</a> - ক্লিক: <span id="clicks-${item.id}">${item.clicks}</span>`;
         resultBox.appendChild(div);
       });
     }
@@ -92,15 +92,11 @@
 
       const data = await res.json();
 
-      let savedLinks = JSON.parse(localStorage.getItem('shortLinks')) || [];
-      savedLinks.push({ id: data.shortId, url: data.shortened_url, clicks: 0 });
-      localStorage.setItem('shortLinks', JSON.stringify(savedLinks));
+      if (!data.shortened_url) {
+        document.getElementById('result').innerText = data.error || "ত্রুটি ঘটেছে";
+        return;
+      }
 
-      loadFromLocalStorage();
-    }
-
-    // Load saved links when page loads
-    window.onload = loadFromLocalStorage;
-  </script>
-</body>
-</html>
+      const shortId = data.shortened_url
+::contentReference[oaicite:0]{index=0}
+ 
