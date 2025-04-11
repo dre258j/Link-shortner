@@ -1,4 +1,4 @@
-let urlDatabase = {};
+import { urlDatabase, clickDatabase } from './api/shorten';
 
 export async function getServerSideProps(context) {
   const { id } = context.params;
@@ -8,7 +8,7 @@ export async function getServerSideProps(context) {
     clickDatabase[id] = (clickDatabase[id] || 0) + 1;
     return {
       redirect: {
-        destination: data.originalUrl,
+        destination: originalUrl,
         permanent: false,
       },
     };
@@ -22,6 +22,3 @@ export async function getServerSideProps(context) {
 export default function RedirectPage() {
   return null;
 }
-
-
-
