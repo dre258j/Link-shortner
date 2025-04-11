@@ -1,83 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>URL Shortener</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shortener</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f4f4;
-      padding: 30px;
-      text-align: center;
-    }
-    .box {
-      background: #fff;
-      padding: 20px;
-      max-width: 500px;
-      margin: auto;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    input, button {
-      padding: 10px;
-      margin: 10px;
-      width: 90%;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      cursor: pointer;
-    }
-    #links {
-      margin-top: 20px;
-    }
-    .link-row {
-      margin-bottom: 10px;
-    }
+    body { font-family: sans-serif; text-align: center; padding: 40px; }
+    input, button { padding: 10px; margin: 5px; width: 300px; }
+    .link-row { margin: 10px 0; }
   </style>
 </head>
 <body>
-  <div class="box">
-    <h2>🔗 Custom URL Shortener</h2>
-    <input type="text" id="urlInput" placeholder="Paste a long URL" />
-    <input type="text" id="customInput" placeholder="Custom alias (optional)" />
-    <button onclick="shortenUrl()">Shorten</button>
+  <h2>🔗 Custom URL Shortener</h2>
+  <input id="urlInput" placeholder="Enter long URL"><br>
+  <input id="customInput" placeholder="Custom alias (optional)"><br>
+  <button onclick="shorten()">Shorten</button>
 
-    <div id="links"></div>
-  </div>
+  <div id="result"></div>
+  <h3>📊 Your Links</h3>
+  <div id="history"></div>
 
   <script>
-    const linksDiv = document.getElementById('links');
-    let savedLinks = JSON.parse(localStorage.getItem('shortenedLinks')) || [];
-
-    function updateLinksDisplay() {
-      linksDiv.innerHTML = '';
-      savedLinks.forEach(link => {
-        const row = document.createElement('div');
-        row.className = 'link-row';
-        row.innerHTML = `
-          <a href="${link.url}" target="_blank" onclick="incrementClick('${link.alias}')">${link.url}</a>
-          - Clicks: <span id="click-${link.alias}">${link.clicks}</span>
-        `;
-        linksDiv.appendChild(row);
-      });
-    }
-
-    function incrementClick(alias) {
-      const index = savedLinks.findIndex(l => l.alias === alias);
-      if (index > -1) {
-        savedLinks[index].clicks++;
-        document.getElementById(`click-${alias}`).innerText = savedLinks[index].clicks;
-        localStorage.setItem('shortenedLinks', JSON.stringify(savedLinks));
-      }
-    }
-
-    async function shortenUrl() {
-      const url = document.getElementById('urlInput').value;
-      const custom = document.getElementById('customInput').value;
+    const shorten = async () => {
+      const url = document.getElementById("urlInput").value;
+      const custom = document.getElementById("customInput").value;
 
       const res = await fetch('/api/shorten', {
         method: 'POST',
@@ -87,17 +31,41 @@
 
       const data = await res.json();
 
-      if (data.shortened_url) {
-        const alias = custom || data.shortened_url.split('/').pop();
-        savedLinks.push({ alias, url: data.shortened_url, clicks: 0 });
-        localStorage.setItem('shortenedLinks', JSON.stringify(savedLinks));
-        updateLinksDisplay();
+      if (data.error) {
+        document.getElementById("result").innerText = data.error;
       } else {
-        alert(data.error || 'Error shortening link');
+        const shortUrl = data.shortened_url;
+        saveLink(shortUrl);
+        displayLinks();
       }
-    }
+    };
 
-    updateLinksDisplay();
+    const saveLink = (url) => {
+      let links = JSON.parse(localStorage.getItem("shortLinks")) || {};
+      if (!links[url]) links[url] = 0;
+      localStorage.setItem("shortLinks", JSON.stringify(links));
+    };
+
+    const displayLinks = () => {
+      const links = JSON.parse(localStorage.getItem("shortLinks")) || {};
+      const container = document.getElementById("history");
+      container.innerHTML = '';
+
+      Object.entries(links).forEach(([link, count]) => {
+        const div = document.createElement("div");
+        div.className = "link-row";
+        div.innerHTML = `<a href="${link}" target="_blank" onclick="increment('${link}')">${link}</a> - Clicks: ${count}`;
+        container.appendChild(div);
+      });
+    };
+
+    const increment = (url) => {
+      const links = JSON.parse(localStorage.getItem("shortLinks")) || {};
+      links[url] = (links[url] || 0) + 1;
+      localStorage.setItem("shortLinks", JSON.stringify(links));
+    };
+
+    window.onload = displayLinks;
   </script>
 </body>
 </html>
