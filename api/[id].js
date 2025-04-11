@@ -1,28 +1,19 @@
-const urlDatabase = {
-  // this will be populated at runtime
-};
-
-const clickDatabase = {
-  // this too
-};
+let urlDatabase = {};
 
 export async function getServerSideProps(context) {
   const { id } = context.params;
-  const originalUrl = urlDatabase[id];
 
-  if (originalUrl) {
-    clickDatabase[id] = (clickDatabase[id] || 0) + 1;
+  const url = urlDatabase[id];
+  if (url) {
     return {
       redirect: {
-        destination: originalUrl,
+        destination: url,
         permanent: false,
       },
     };
   }
 
-  return {
-    notFound: true,
-  };
+  return { notFound: true };
 }
 
 export default function RedirectPage() {
