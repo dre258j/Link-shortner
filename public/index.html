@@ -3,46 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <title>URL Shortener</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 30px;
+      text-align: center;
+    }
+    .box {
+      background: #fff;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      width: 90%;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    #links {
+      margin-top: 20px;
+    }
+    .link-row {
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
-  <div>
-    <input type="text" id="urlInput" placeholder="Paste long URL" />
+  <div class="box">
+    <h2>🔗 Custom URL Shortener</h2>
+    <input type="text" id="urlInput" placeholder="Paste a long URL" />
     <input type="text" id="customInput" placeholder="Custom alias (optional)" />
     <button onclick="shortenUrl()">Shorten</button>
-    <div id="result"></div>
+
+    <div id="links"></div>
   </div>
 
   <script>
-    const storageKey = "shortened_links";
+    const linksDiv = document.getElementById('links');
+    let savedLinks = JSON.parse(localStorage.getItem('shortenedLinks')) || [];
 
-    function saveToLocalStorage(link, clicks = 0) {
-      const links = JSON.parse(localStorage.getItem(storageKey)) || [];
-      links.push({ link, clicks });
-      localStorage.setItem(storageKey, JSON.stringify(links));
-      displayLinks();
-    }
-
-    function displayLinks() {
-      const result = document.getElementById('result');
-      const links = JSON.parse(localStorage.getItem(storageKey)) || [];
-      result.innerHTML = links.map(item =>
-        `<div>
-          <a href="${item.link}" onclick="incrementClick('${item.link}')" target="_blank">${item.link}</a>
-          - Clicks: <span id="${item.link}">${item.clicks}</span>
-        </div>`
-      ).join("");
-    }
-
-    function incrementClick(link) {
-      const links = JSON.parse(localStorage.getItem(storageKey)) || [];
-      const updated = links.map(item => {
-        if (item.link === link) {
-          item.clicks += 1;
-          document.getElementById(link).innerText = item.clicks;
-        }
-        return item;
+    function updateLinksDisplay() {
+      linksDiv.innerHTML = '';
+      savedLinks.forEach(link => {
+        const row = document.createElement('div');
+        row.className = 'link-row';
+        row.innerHTML = `
+          <a href="${link.url}" target="_blank" onclick="incrementClick('${link.alias}')">${link.url}</a>
+          - Clicks: <span id="click-${link.alias}">${link.clicks}</span>
+        `;
+        linksDiv.appendChild(row);
       });
-      localStorage.setItem(storageKey, JSON.stringify(updated));
+    }
+
+    function incrementClick(alias) {
+      const index = savedLinks.findIndex(l => l.alias === alias);
+      if (index > -1) {
+        savedLinks[index].clicks++;
+        document.getElementById(`click-${alias}`).innerText = savedLinks[index].clicks;
+        localStorage.setItem('shortenedLinks', JSON.stringify(savedLinks));
+      }
     }
 
     async function shortenUrl() {
@@ -52,18 +82,22 @@
       const res = await fetch('/api/shorten', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, custom }),
+        body: JSON.stringify({ url, custom })
       });
 
       const data = await res.json();
+
       if (data.shortened_url) {
-        saveToLocalStorage(data.shortened_url, 0);
+        const alias = custom || data.shortened_url.split('/').pop();
+        savedLinks.push({ alias, url: data.shortened_url, clicks: 0 });
+        localStorage.setItem('shortenedLinks', JSON.stringify(savedLinks));
+        updateLinksDisplay();
       } else {
-        alert(data.error || "Something went wrong.");
+        alert(data.error || 'Error shortening link');
       }
     }
 
-    displayLinks();
+    updateLinksDisplay();
   </script>
 </body>
 </html>
